@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
+import registerRoute from './routes/register.js';
+
 const app = express();
 dotenv.config();
 
@@ -13,7 +15,9 @@ app.use(cors());
 
 app.get('/', (req, res) => {
     res.send('Hello to API');
-})
+});
+
+app.use('/register', registerRoute);
 
 //Don't forget to use .env
 const CONNECTION_URL = process.env.CONNECTION_URL;
