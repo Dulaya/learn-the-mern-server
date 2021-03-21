@@ -1,66 +1,91 @@
-import express from 'express';
+import express from "express";
+import bcrypt from "bcrypt";
+import Joi from "@hapi/joi";
+
+import User from "../model/user.js";
 
 const router = express.Router();
 
-router.post('/', (request, response) => {
-    /*
-        handle registration
-        Check if username exists
-        Check if email exists (optional email)
-        Check if password meets requirement
-        Hash password (optional for now, will need later; use bcrypt.genSalt & bcrypt.hash)
-        
-        Create new user, something like: 
-            const user = new User ({
-                username: request.body.username,
-                email: request.body.email,
-                password: hashPassword,
-            })
+router.post("/", async (request, response) => {
+  //Validate data
+  const { error } = registerValidation(request.body);
+  if (error) return response.status(400).send(error.details[0].message/*.join("\n")*/);
 
-        Save to database, something like: 
-            try {
-                const savedUser = await user.save();
-                response.send(savedUser);
-            } catch (error) {
-                response.status(400).send(error);
-            }
-        
-    */
+  //Check if user is alread in database
+  const userExist = await User.findOne({
+    username: request.body.username
+  });
+  if (userExist) return response.status(400).send("Username already exists");
 
-    /*
-        Example: 
+  //Check if email is alread in database
+  const emailExist = await User.findOne({
+    email: request.body.email
+  });
+  if (emailExist) return response.status(400).send("Email already exists");
 
-        //Validate data
-        const { error } = registerValidation(req.body);
-        if (error) return res.status(400).send(error.details[0].message);
+  //Hash password
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(request.body.password, salt);
 
-        //Check if user is alread in database
-        const userExist = await User.findOne({ username: req.body.username });
-        if (userExist) return res.status(400).send('Username already exists');
+  //Create a new user
+  const user = new User({
+    username: request.body.username,
+    email: request.body.email,
+    password: hashPassword,
+  });
 
-        //Check if email is alread in database
-        const emailExist = await User.findOne({ email: req.body.email });
-        if (emailExist) return res.status(400).send('Email already exists');
+  try {
+    //Save user to database if no errors
+    const savedUser = await user.save();
 
-        //Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashPassword = await bcrypt.hash(req.body.password, salt);
-
-        //Create a new user
-        const user = new User({
-        username: req.body.username,
-        email: req.body.email,
-        password: hashPassword,
-        });
-        try {
-        const savedUser = await user.save();
-        res.send(savedUser);
-        } catch (err) {
-        res.status(400).send(err);
-        }
-
-    */ 
+    //If there's no error, send success to client.
+    response.send(savedUser);
+  } catch (error) {
+    //If there's an error, send error to client.
+    response.status(400).send(error);
+  }
 
 });
+
+/*gisterValidation = data => {
+  let error = {
+    details: [{
+      message: []
+    }]
+  };
+
+  if (data["username"].trim().length == 0) {
+    error.details[0].message.push("Username is empty");
+  }
+
+  if (data["email"].trim().length == 0) {
+    error.details[0].message.push("Email is empty");
+  }
+
+  if (data["password"].trim().length < 4) {
+    error.details[0].message.push("Password must be atleast 4 characters long");
+  }
+
+  if (error.details[0].message.length != 0) {
+    return {
+      error: error
+    };
+  }
+
+  //What's the return empty object for?
+  return {};
+}
+*/
+
+//Register Validation
+//Using @hapi/joi for verification
+const registerValidation = (data) => {
+  const schema = Joi.object({
+      username: Joi.string().min(6).required(),
+      email: Joi.string().min(6).required().email(),
+      password: Joi.string().min(6).required()
+  });
+  return schema.validate(data);
+}
 
 export default router;
