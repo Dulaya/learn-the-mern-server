@@ -9,7 +9,7 @@ const router = express.Router();
 router.post("/", async (request, response) => {
   //Validate data
   const { error } = registerValidation(request.body);
-  if (error) return response.status(400).send(error.details[0].message/*.join("\n")*/);
+  if (error) return response.status(400).send(error.details[0].message);
 
   //Check if user is alread in database
   const userExist = await User.findOne({
@@ -46,36 +46,6 @@ router.post("/", async (request, response) => {
   }
 
 });
-
-/*gisterValidation = data => {
-  let error = {
-    details: [{
-      message: []
-    }]
-  };
-
-  if (data["username"].trim().length == 0) {
-    error.details[0].message.push("Username is empty");
-  }
-
-  if (data["email"].trim().length == 0) {
-    error.details[0].message.push("Email is empty");
-  }
-
-  if (data["password"].trim().length < 4) {
-    error.details[0].message.push("Password must be atleast 4 characters long");
-  }
-
-  if (error.details[0].message.length != 0) {
-    return {
-      error: error
-    };
-  }
-
-  //What's the return empty object for?
-  return {};
-}
-*/
 
 //Register Validation
 //Using @hapi/joi for verification
