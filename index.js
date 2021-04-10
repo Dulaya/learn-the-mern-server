@@ -5,6 +5,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import registerRoute from "./routes/register.js";
+import loginRoute from "./routes/login.js";
 
 const app = express();
 dotenv.config();
@@ -18,6 +19,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/register", registerRoute);
+app.use("/login", loginRoute);
 
 //Don't forget to use .env
 const CONNECTION_URL = process.env.CONNECTION_URL;
