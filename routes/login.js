@@ -17,10 +17,10 @@ router.post("/", async (request, response) => {
   });
   if (!username) return response.status(400).send("Username doesn't exists");
 
-  const validPass = await bcrypt.compare(req.body.password, user.passwordname);
+  const validPass = await bcrypt.compare(request.body.password, username.password);
   if (!validPass) return response.status(400).send("Password is invalid");
 
-  response.send("logged in");
+  response.send("Login Success!");
 });
 
 //Login Validation

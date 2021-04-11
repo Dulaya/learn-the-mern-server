@@ -53,7 +53,11 @@ const registerValidation = (data) => {
   const schema = Joi.object({
       username: Joi.string().min(6).required(),
       email: Joi.string().min(6).required().email(),
-      password: Joi.string().min(6).required()
+      password: Joi.string().min(6).required(),
+      repeatPassword: Joi.any().equal(Joi.ref('password'))
+      .required()
+      .options({ messages: { 'any.only': 'Passwords do not match'} })
+
   });
   return schema.validate(data);
 }
